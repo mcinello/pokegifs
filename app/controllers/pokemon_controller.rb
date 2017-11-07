@@ -43,12 +43,11 @@ private
   def generate_team
     count_res = HTTParty.get("https://pokeapi.co/api/v2/pokemon/?limit=10000")
     count_data = JSON.parse(count_res.body)
-    count = count_data["count"]
     results = count_data["results"]
 
     team_mich = []
     6.times do
-      random_id = rand(1..count)
+      random_id = rand(1..results.length)
       pokemon = results[random_id - 1]
 
       poke_res = HTTParty.get(pokemon["url"])
