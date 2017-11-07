@@ -3,6 +3,10 @@ class PokemonController < ApplicationController
     pokemon_info
   end
 
+  def team
+    generate_team
+  end
+
 private
 
   def pokemon_info
@@ -36,10 +40,30 @@ private
     render json: { :message => "Invalid GIPHY API Key"}, layout: false, status: 403
   end
 
-  def team
-    6.times do
+  def generate_team
+    count_res = HTTParty.get("https://pokeapi.co/api/v2/pokemon/?limit=10000")
+    count_data = JSON.parse(count_res.body)
+    count = count_data["count"]
+    results = count_data["results"]
 
+    team_mich = []
+    6.times do
+      random_id = rand(1..count)
+      pokemon = results[random_id - 1]
+
+      poke_res = HTTParty.get(pokemon["url"])
+      poke_data = JSON.parse(poke_res.body)
+
+      giphy_res = HTTParty.get("https://api.giphy.com/v1/gifs/search?api_key=#{ENV["GIPHY_KEY"]}&q=#{poke_data["name"]}&rating=g")
+      giphy_data = JSON.parse(giphy_res.body)
+      team_mich << {
+        'id' => "#{poke_data["id"]}",
+        'name' => "#{poke_data["name"]}",
+        'type' => "#{poke_data["types"][0]["type"]["name"]}",
+        'gif' => "#{giphy_data["data"][0]["url"]}"
+        }
     end
+    render json: {team: team_mich}
   end
 
 end
